@@ -68,9 +68,18 @@ fit <- randomForest(classe ~. ,data=subTrain,mtry=sqrt(totalPredictorCount),impo
 
 ```
 
+###Out of sample error/Confusion matrix
+```{r, echo=TRUE}
+
+print(fit)
+
+```
+
+
 ###Cross-validation on training's test set.
 ```{r, echo=TRUE}
 pred <- predict(fit, newdata=subTest)
 confusionMatrix(subTest$classe, pred)
 ```
+
 
