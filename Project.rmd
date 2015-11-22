@@ -1,0 +1,76 @@
+---
+title: "Machine Learning"
+author: "Sachin Kekatpuray"
+date: "Sunday, November 22, 2015"
+output: html_document
+---
+
+##Summary
+
+In this project I have utlized Random Forest algorithms as means to obtain a data-model towards predicting exercise classifications based on a certain number of predictors. The project is executed in following summarized steps:
+
+1. Read training and test data.
+2. Cleanup training data, remove unneccessary variables from the predictor list. Most the factor variables and variables having significant NAs. 
+3. Partition training data into training and test data.  We shall use this test data for cross validation.
+4. Generate model by applying random forest algorithm on training's train data. 
+5. Run prediction and confusion matrix on training's test data.
+6. Predict Test-data from step-1.
+
+```{r, echo=FALSE,warning=FALSE}
+library(caret)
+library(kernlab)
+library(stringr)
+library(randomForest)
+library(stats)
+setwd("C:/dev/DataScience/MachineLearning/Proj")
+
+```
+###Read data
+```{r, echo=TRUE}
+training <- read.csv("pml-training.csv", header=T)
+testing <- read.csv("pml-testing.csv", header=T)
+```
+
+###Cleanup data
+Remove factor variables, and other variables having significant NAs.
+```{r, echo=TRUE}
+colCnt <- dim(training)[2] - 1
+colRemoveidx = c();
+
+for (i in 1:colCnt)
+  if(is.factor(training[[i]]))
+    colRemoveidx <- c(colRemoveidx, i)
+
+training <- training[,-colRemoveidx]
+
+training <- training[,-c(9:24, 38:47, 57:65, 69:74,76:85,98:114)]
+training <- training[,-c(1:4)]
+```
+
+
+
+###Create data partitions on training set
+Keeping the original test-data aside, we partition the training data into training and test. 
+```{r, echo=TRUE}
+
+inTrain <- createDataPartition(y=training$classe, p = 0.7, list = F)
+subTrain <- training[inTrain,]
+subTest <- training[-inTrain,]
+
+```
+
+###Apply Random Forest algo to generate model
+```{r, echo=TRUE}
+
+totalPredictorCount <- dim(subTest)[2]
+fit <- randomForest(classe ~. ,data=subTrain,mtry=sqrt(totalPredictorCount),importance=TRUE)
+
+
+```
+
+###Cross-validation on training's test set.
+```{r, echo=TRUE}
+pred <- predict(fit, newdata=subTest)
+confusionMatrix(subTest$classe, pred)
+```
+
